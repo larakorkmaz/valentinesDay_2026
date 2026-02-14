@@ -1,1205 +1,816 @@
 <!doctype html>
 <html lang="tr">
-
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <title>Parkur 💖</title>
-    <style>
-        :root {
-            --ui: rgba(0, 0, 0, .55);
-            --text: rgba(255, 255, 255, .92)
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Parkur 💖</title>
+  <style>
+    :root { --ui: rgba(0,0,0,.55); --text: rgba(255,255,255,.92) }
 
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-            background: #0b0b10;
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-            overscroll-behavior: none;
-            overflow: hidden;
-            /* ✅ no scroll */
-        }
+    html, body{
+      height:100%;
+      margin:0;
+      background:#0b0b10;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      overscroll-behavior:none;
+      overflow:hidden;
+    }
 
-        #wrap {
-            height: 100%;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-            touch-action: none;
-            display: grid;
-            place-items: center;
-        }
+    #wrap{
+      height:100%;
+      width:100%;
+      position:relative;
+      overflow:hidden;
+      touch-action:none;
+      display:grid;
+      place-items:center;
+    }
 
-        /* desktop */
-        canvas {
-            display: block;
-            width: min(1100px, 96vw);
-            height: auto;
-            aspect-ratio: 16/9;
-            border-radius: 18px;
-            box-shadow: 0 18px 60px rgba(0, 0, 0, .55);
-            background: #0f1320;
-            touch-action: none;
-        }
+    canvas{
+      display:block;
+      width:min(1100px,96vw);
+      height:auto;
+      aspect-ratio:16/9;
+      border-radius:18px;
+      box-shadow:0 18px 60px rgba(0,0,0,.55);
+      background:#0f1320;
+      touch-action:none;
+    }
 
-        /* HUD */
-        .hud {
-            position: absolute;
-            top: calc(14px + env(safe-area-inset-top));
-            left: calc(14px + env(safe-area-inset-left));
-            right: calc(14px + env(safe-area-inset-right));
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            justify-content: space-between;
-            pointer-events: none;
-            color: var(--text);
-            font-weight: 950;
-            z-index: 5;
-        }
+    .hud{
+      position:absolute;
+      top:calc(14px + env(safe-area-inset-top));
+      left:calc(14px + env(safe-area-inset-left));
+      right:calc(14px + env(safe-area-inset-right));
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      pointer-events:none;
+      color:var(--text);
+      font-weight:950;
+      z-index:5;
+    }
 
-        .pill {
-            background: var(--ui);
-            border: 1px solid rgba(255, 255, 255, .12);
-            backdrop-filter: blur(10px);
-            padding: 10px 12px;
-            border-radius: 999px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            font-size: 14px;
-        }
+    .pill{
+      background:var(--ui);
+      border:1px solid rgba(255,255,255,.12);
+      backdrop-filter:blur(10px);
+      padding:10px 12px;
+      border-radius:999px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      font-size:14px;
+    }
 
-        .hint {
-            opacity: .9;
-            font-weight: 800;
-            font-size: 12px
-        }
+    .hint{ opacity:.9; font-weight:800; font-size:12px }
 
-        /* overlays */
-        #start,
-        #end {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, .65);
-            backdrop-filter: blur(6px);
-            color: var(--text);
-            text-align: center;
-            padding: 24px;
-            z-index: 10;
-        }
+    #start,#end{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,.65);
+      backdrop-filter:blur(6px);
+      color:var(--text);
+      text-align:center;
+      padding:24px;
+      z-index:10;
+    }
+    #start{ display:flex }
+    #end{ display:none }
 
-        #start {
-            display: flex
-        }
+    .box{
+      width:min(620px,92vw);
+      border-radius:20px;
+      background:rgba(18,18,25,.92);
+      border:1px solid rgba(255,255,255,.14);
+      padding:22px;
+      box-shadow:0 25px 80px rgba(0,0,0,.65);
+    }
 
-        #end {
-            display: none
-        }
+    button{
+      padding:12px 16px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.10);
+      color:var(--text);
+      cursor:pointer;
+      font-weight:950;
+    }
 
-        .box {
-            width: min(620px, 92vw);
-            border-radius: 20px;
-            background: rgba(18, 18, 25, .92);
-            border: 1px solid rgba(255, 255, 255, .14);
-            padding: 22px;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, .65);
-        }
+    #modal{
+      position:absolute;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,.55);
+      backdrop-filter:blur(6px);
+      z-index:12;
+    }
 
-        button {
-            padding: 12px 16px;
-            border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, .14);
-            background: rgba(255, 255, 255, .10);
-            color: var(--text);
-            cursor: pointer;
-            font-weight: 950;
-        }
+    #card{
+      width:min(560px,92vw);
+      border-radius:18px;
+      background:rgba(18,18,25,.92);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:0 25px 80px rgba(0,0,0,.65);
+      color:var(--text);
+      padding:18px;
+    }
 
-        /* modal */
-        #modal {
-            position: absolute;
-            inset: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, .55);
-            backdrop-filter: blur(6px);
-            z-index: 12;
-        }
+    .opts{ display:grid; gap:10px; margin-top:12px }
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.07);
+      color:var(--text);
+      padding:12px;
+      border-radius:14px;
+      cursor:pointer;
+      text-align:left;
+      font-weight:950;
+    }
 
-        #card {
-            width: min(560px, 92vw);
-            border-radius: 18px;
-            background: rgba(18, 18, 25, .92);
-            border: 1px solid rgba(255, 255, 255, .14);
-            box-shadow: 0 25px 80px rgba(0, 0, 0, .65);
-            color: var(--text);
-            padding: 18px;
-        }
+    #touchUI{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:6;
+    }
 
-        .opts {
-            display: grid;
-            gap: 10px;
-            margin-top: 12px
-        }
+    .pad{
+      position:absolute;
+      bottom:calc(18px + env(safe-area-inset-bottom));
+      left:calc(18px + env(safe-area-inset-left));
+      display:flex;
+      gap:10px;
+      pointer-events:auto;
+    }
 
-        .btn {
-            border: 1px solid rgba(255, 255, 255, .14);
-            background: rgba(255, 255, 255, .07);
-            color: var(--text);
-            padding: 12px;
-            border-radius: 14px;
-            cursor: pointer;
-            text-align: left;
-            font-weight: 950;
-        }
+    .padR{
+      position:absolute;
+      bottom:calc(18px + env(safe-area-inset-bottom));
+      right:calc(18px + env(safe-area-inset-right));
+      display:flex;
+      gap:10px;
+      pointer-events:auto;
+    }
 
-        /* touch UI */
-        #touchUI {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 6;
-        }
+    .tbtn{
+      width:70px;
+      height:70px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.35);
+      backdrop-filter:blur(10px);
+      color:rgba(255,255,255,.95);
+      font-weight:950;
+      display:grid;
+      place-items:center;
+      user-select:none;
+      -webkit-user-select:none;
+      touch-action:none;
+    }
 
-        .pad {
-            position: absolute;
-            bottom: calc(18px + env(safe-area-inset-bottom));
-            left: calc(18px + env(safe-area-inset-left));
-            display: flex;
-            gap: 10px;
-            pointer-events: auto;
-        }
-
-        .padR {
-            position: absolute;
-            bottom: calc(18px + env(safe-area-inset-bottom));
-            right: calc(18px + env(safe-area-inset-right));
-            display: flex;
-            gap: 10px;
-            pointer-events: auto;
-        }
-
-        .tbtn {
-            width: 70px;
-            height: 70px;
-            border-radius: 18px;
-            border: 1px solid rgba(255, 255, 255, .14);
-            background: rgba(0, 0, 0, .35);
-            backdrop-filter: blur(10px);
-            color: rgba(255, 255, 255, .95);
-            font-weight: 950;
-            display: grid;
-            place-items: center;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-        }
-
-        /* ✅ MOBILE: full-screen game */
-        @media (max-width: 900px) {
-            #wrap {
-                place-items: stretch;
-            }
-
-            canvas {
-                width: 100vw;
-                height: 100dvh;
-                /* ✅ real device height */
-                aspect-ratio: auto;
-                /* ✅ remove 16/9 lock */
-                border-radius: 0;
-                box-shadow: none;
-            }
-        }
-    </style>
+    @media (max-width: 900px){
+      #wrap{ place-items:stretch }
+      canvas{
+        width:100vw;
+        height:100dvh;
+        aspect-ratio:auto;
+        border-radius:0;
+        box-shadow:none;
+      }
+    }
+  </style>
 </head>
 
 <body>
-    <div id="wrap">
-        <canvas id="game" width="1280" height="720" tabindex="0"></canvas>
+  <div id="wrap">
+    <canvas id="game" width="1280" height="720" tabindex="0"></canvas>
 
-        <div class="hud">
-            <div class="pill">💖 Kalp: <span id="score">0</span>/15</div>
-            <div class="pill">❤️ Can: <span id="lives">3</span> <span class="hint">A/D+Space • K</span></div>
-        </div>
-
-        <div id="touchUI">
-            <div class="pad">
-                <div class="tbtn" id="btnLeft">◀</div>
-                <div class="tbtn" id="btnRight">▶</div>
-            </div>
-            <div class="padR">
-                <div class="tbtn" id="btnJump">⤒</div>
-                <div class="tbtn" id="btnAtk">K</div>
-            </div>
-        </div>
-
-        <div id="start">
-            <div class="box">
-                <h1>Parkur 💖</h1>
-                <p>Kalpleri topla, soruları bil. 15/15 olmadan zindan açılmaz 😤</p>
-                <p class="hint">Hareket: A/D • Zıpla: Space • Saldırı: K</p>
-                <button id="startBtn">Başla</button>
-            </div>
-        </div>
-
-        <div id="modal" role="dialog" aria-modal="true">
-            <div id="card">
-                <div class="sub">Kalp aldın. Doğru bilirsen kalır 💘</div>
-                <h2 id="qtext">Soru</h2>
-                <div class="opts" id="qopts"></div>
-                <div id="toast"></div>
-            </div>
-        </div>
-
-        <div id="end">
-            <div class="box">
-                <h1 id="endTitle">💖</h1>
-                <p id="endMsg"></p>
-                <div class="actions">
-                    <button id="retry">Tekrar</button>
-                    <button id="editQs">Soruları Düzenle</button>
-                </div>
-            </div>
-        </div>
+    <div class="hud">
+      <div class="pill">💖 Kalp: <span id="score">0</span>/15</div>
+      <div class="pill">❤️ Can: <span id="lives">3</span> <span class="hint">A/D+Space • K</span></div>
     </div>
 
-    <script>
-        (() => {
-            const ZOOM = 1.55;
-            const SPRITE_SCALE = 3.0;
-            const TILE = 32;
+    <div id="touchUI">
+      <div class="pad">
+        <div class="tbtn" id="btnLeft">◀</div>
+        <div class="tbtn" id="btnRight">▶</div>
+      </div>
+      <div class="padR">
+        <div class="tbtn" id="btnJump">⤒</div>
+        <div class="tbtn" id="btnAtk">K</div>
+      </div>
+    </div>
 
-            const WORLD_W = 7600;
-            const GROUND_Y = 600;
+    <div id="start">
+      <div class="box">
+        <h1>Parkur 💖</h1>
+        <p>Kalpleri topla, soruları bil. 15/15 olmadan zindan açılmaz 😤</p>
+        <p class="hint">Hareket: A/D • Zıpla: Space • Saldırı: K</p>
+        <button id="startBtn">Başla</button>
+      </div>
+    </div>
 
-            const QUESTIONS = [
-                { q: "Benim en sevdiğim renk hangisi?", options: ["Pembe", "Mavi", "Siyah", "Yeşil"], correct: 0 },
-                { q: "Benim doğum günüm?", options: ["3 Temmuz 2003", "10 Temmuz 2003", "10 Haziran 2003", "11 Temmuz 2004"], correct: 1 },
-                { q: "Yapmayı en sevdiğim yemek türü?", options: ["Tatlı", "Hamur işi", "Salata", "Hiçbiri"], correct: 1 },
-                { q: "Benim favori tatlım?", options: ["Coco Star", "Çikolata", "Rulo pasta", "Profiterol"], correct: 2 },
-                { q: "Seninle oynamayı en sevdiğim oyun?", options: ["CS", "Tarkov", "Dying Light", "Hepsi"], correct: 3 },
-                { q: "Yıldönümümüz?", options: ["21 Mayıs 2020", "6 Haziran 2020", "21 Haziran 2021", "21 Haziran 2020"], correct: 3 },
-                { q: "Benim en sevmediğim şey?", options: ["Soğuk yapman", "Beni dinlememen", "Haber vermemen", "Hepsi"], correct: 3 },
-                { q: "Seninle oynamak en çok istediğim oyun?", options: ["Phasmophobia", "Overcooked", "FIFA", "Roblox"], correct: 1 },
-                { q: "Yapmayı en en sevdiğim şey?", options: ["BrrrBrr", "Yemek yapmak", "Beraber oyun oynamak", "Beraber dizi izlemek"], correct: 0 },
-                { q: "Yapmanı en sevmediğim şey?", options: ["Gıdıklanmak", "Uzerimde bir takım MMA haraketleri denenmesi", "CS'de ağzıma sıçman", "Yaptığım yemeği yememen"], correct: 2 },
-                { q: "En sevdiğim çiçek türü?", options: ["Gül", "Lale", "Papatya", "Orkide"], correct: 1 },
-                { q: "En seviğim film türü?", options: ["Romantik", "Korku", "Komedi", "Gizem"], correct: 1 },
-                { q: "En çok gitmek istediğim ülke?", options: ["Fransa", "Amerika", "İngiltere", "Diğer"], correct: 1 },
-                { q: "En sevdiğim hayvan?", options: ["Kedi", "Köpek", "Kaplan", "Hepsi"], correct: 3 },
-                { q: "Final: Beni seviyor musun?", options: ["Evet", "Çok", "Çoook fazla", "Hepsi"], correct: 3 },
-            ];
+    <div id="modal" role="dialog" aria-modal="true">
+      <div id="card">
+        <div class="sub">Kalp aldın. Doğru bilirsen kalır 💘</div>
+        <h2 id="qtext">Soru</h2>
+        <div class="opts" id="qopts"></div>
+        <div id="toast"></div>
+      </div>
+    </div>
 
-            const canvas = document.getElementById("game");
-            const ctx = canvas.getContext("2d");
-            ctx.imageSmoothingEnabled = false;
-            let W = canvas.width, H = canvas.height;
+    <div id="end">
+      <div class="box">
+        <h1 id="endTitle">💖</h1>
+        <p id="endMsg"></p>
+        <div class="actions">
+          <button id="retry">Tekrar</button>
+          <button id="editQs">Soruları Düzenle</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-            function fitCanvas() {
-                const rect = canvas.getBoundingClientRect();
-                const dpr = Math.min(2, window.devicePixelRatio || 1);
+  <script>
+    (() => {
+      // sizes
+      let ZOOM = 1.55;            // changes on mobile
+      const SPRITE_SCALE = 3.0;
+      const TILE = 32;
 
-                // ✅ mobile full-screen gets correct height
-                const targetW = Math.max(1, Math.round(rect.width * dpr));
-                const targetH = Math.max(1, Math.round(rect.height * dpr));
+      const WORLD_W = 7600;
+      const GROUND_Y = 600;
+      const WORLD_H = GROUND_Y + 1600; // for camY clamp
 
-                if (canvas.width !== targetW || canvas.height !== targetH) {
-                    canvas.width = targetW;
-                    canvas.height = targetH;
-                    W = canvas.width;
-                    H = canvas.height;
-                    ctx.imageSmoothingEnabled = false;
-                }
+      const QUESTIONS = [
+        { q: "Benim en sevdiğim renk hangisi?", options: ["Pembe","Mavi","Siyah","Yeşil"], correct: 0 },
+        { q: "Benim doğum günüm?", options: ["3 Temmuz 2003","10 Temmuz 2003","10 Haziran 2003","11 Temmuz 2004"], correct: 1 },
+        { q: "Yapmayı en sevdiğim yemek türü?", options: ["Tatlı","Hamur işi","Salata","Hiçbiri"], correct: 1 },
+        { q: "Benim favori tatlım?", options: ["Coco Star","Çikolata","Rulo pasta","Profiterol"], correct: 2 },
+        { q: "Seninle oynamayı en sevdiğim oyun?", options: ["CS","Tarkov","Dying Light","Hepsi"], correct: 3 },
+        { q: "Yıldönümümüz?", options: ["21 Mayıs 2020","6 Haziran 2020","21 Haziran 2021","21 Haziran 2020"], correct: 3 },
+        { q: "Benim en sevmediğim şey?", options: ["Soğuk yapman","Beni dinlememen","Haber vermemen","Hepsi"], correct: 3 },
+        { q: "Seninle oynamak en çok istediğim oyun?", options: ["Phasmophobia","Overcooked","FIFA","Roblox"], correct: 1 },
+        { q: "Yapmayı en en sevdiğim şey?", options: ["BrrrBrr","Yemek yapmak","Beraber oyun oynamak","Beraber dizi izlemek"], correct: 0 },
+        { q: "Yapmanı en sevmediğim şey?", options: ["Gıdıklanmak","Uzerimde bir takım MMA haraketleri denenmesi","CS'de ağzıma sıçman","Yaptığım yemeği yememen"], correct: 2 },
+        { q: "En sevdiğim çiçek türü?", options: ["Gül","Lale","Papatya","Orkide"], correct: 1 },
+        { q: "En seviğim film türü?", options: ["Romantik","Korku","Komedi","Gizem"], correct: 1 },
+        { q: "En çok gitmek istediğim ülke?", options: ["Fransa","Amerika","İngiltere","Diğer"], correct: 1 },
+        { q: "En sevdiğim hayvan?", options: ["Kedi","Köpek","Kaplan","Hepsi"], correct: 3 },
+        { q: "Final: Beni seviyor musun?", options: ["Evet","Çok","Çoook fazla","Hepsi"], correct: 3 },
+      ];
+
+      // canvas
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = false;
+      let W = canvas.width, H = canvas.height;
+
+      function updateZoom() {
+        const isMobile = window.innerWidth < 900;
+        ZOOM = isMobile ? 2.25 : 1.55;   // ✅ closer on phone/tablet
+      }
+
+      function fitCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const targetW = Math.max(1, Math.round(rect.width * dpr));
+        const targetH = Math.max(1, Math.round(rect.height * dpr));
+        if (canvas.width !== targetW || canvas.height !== targetH) {
+          canvas.width = targetW;
+          canvas.height = targetH;
+          W = canvas.width; H = canvas.height;
+          ctx.imageSmoothingEnabled = false;
+        }
+      }
+
+      window.addEventListener("resize", () => {
+        updateZoom();
+        fitCanvas();
+      });
+      window.addEventListener("orientationchange", () => setTimeout(() => {
+        updateZoom();
+        fitCanvas();
+      }, 120));
+
+      // ui
+      const ui = {
+        score: document.getElementById("score"),
+        lives: document.getElementById("lives"),
+        start: document.getElementById("start"),
+        startBtn: document.getElementById("startBtn"),
+        modal: document.getElementById("modal"),
+        qtext: document.getElementById("qtext"),
+        qopts: document.getElementById("qopts"),
+        toast: document.getElementById("toast"),
+        end: document.getElementById("end"),
+        endTitle: document.getElementById("endTitle"),
+        endMsg: document.getElementById("endMsg"),
+        retry: document.getElementById("retry"),
+        editQs: document.getElementById("editQs"),
+      };
+
+      // input
+      const keys = new Set();
+      const normKey = (e) => ((e.key || "").toLowerCase() === " " ? "space" : (e.key || "").toLowerCase());
+      const down = (...arr) => arr.some(x => keys.has(x));
+
+      window.addEventListener("keydown", (e) => {
+        const k = normKey(e);
+        if (["arrowleft","arrowright","arrowup","a","d","w","space","k"].includes(k)) e.preventDefault();
+        keys.add(e.code); keys.add(k);
+      }, { passive:false });
+
+      window.addEventListener("keyup", (e) => {
+        keys.delete(e.code); keys.delete(normKey(e));
+      }, { passive:false });
+
+      function bindHold(el, keyName) {
+        const on = (ev) => { ev.preventDefault(); keys.add(keyName); };
+        const off = (ev) => { ev.preventDefault(); keys.delete(keyName); };
+        el.addEventListener("pointerdown", on, { passive:false });
+        el.addEventListener("pointerup", off, { passive:false });
+        el.addEventListener("pointercancel", off, { passive:false });
+        el.addEventListener("pointerleave", off, { passive:false });
+      }
+      bindHold(document.getElementById("btnLeft"), "a");
+      bindHold(document.getElementById("btnRight"), "d");
+      bindHold(document.getElementById("btnJump"), "space");
+      bindHold(document.getElementById("btnAtk"), "k");
+
+      // assets
+      const IMG = { hero:null, princess:null, heart:null, lava:null, water:null, tile:null, spike:null, m1:null, m2:null };
+      const loadImg = (src) => new Promise(res => { const im = new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=src; });
+
+      async function loadAll() {
+        IMG.hero = await loadImg("./dogukan.png");
+        IMG.princess = await loadImg("./lara.png");
+        IMG.heart = await loadImg("./heart.png");
+        IMG.lava = await loadImg("./lava.png");
+        IMG.water = await loadImg("./water.png");
+        IMG.tile = await loadImg("./tile.png");
+        IMG.spike = await loadImg("./spike.png");
+        IMG.m1 = await loadImg("./monster-1.png");
+        IMG.m2 = await loadImg("./monster-2.png");
+      }
+
+      // helpers
+      const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
+      const overlap = (a,b)=>a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y;
+
+      function drawSprite(img,x,y,w,h,scale,anchor,fallback){
+        const sw=w*scale, sh=h*scale;
+        const dx=x-(sw-w)/2;
+        let dy=y;
+        if(anchor==="feet") dy=y-(sh-h);
+        else if(anchor==="center") dy=y-(sh-h)/2;
+        if(img) ctx.drawImage(img,dx,dy,sw,sh);
+        else { ctx.fillStyle=fallback; ctx.fillRect(dx,dy,sw,sh); }
+      }
+
+      function drawTiles(img,x,y,w,h,fallback){
+        if(!img){ ctx.fillStyle=fallback; ctx.fillRect(x,y,w,h); return; }
+        const cols=Math.ceil(w/TILE), rows=Math.ceil(h/TILE);
+        for(let ry=0;ry<rows;ry++) for(let cx=0;cx<cols;cx++) ctx.drawImage(img,x+cx*TILE,y+ry*TILE,TILE,TILE);
+      }
+
+      // physics
+      const GRAV=2400, MOVE=540, JUMP=980;
+      const ATK_W=70, ATK_H=44, ATK_TIME=0.12, ATK_CD=0.22;
+
+      // world arrays
+      const platforms=[], hazards=[], spikes=[], enemies=[], hearts=[], checkpoints=[];
+      const prison = { x: WORLD_W-380, y: GROUND_Y-210, w:260, h:210, doorOpen:false };
+      const princess = { x: prison.x+150, y: GROUND_Y-56, active:false, reunited:false, speed:240 };
+
+      function buildWorld(){
+        platforms.length=0; hazards.length=0; spikes.length=0;
+        enemies.length=0; hearts.length=0; checkpoints.length=0;
+
+        platforms.push({ x:0, y:GROUND_Y, w:WORLD_W, h:1600 });
+
+        checkpoints.push({ x:160, y:GROUND_Y-60 });
+        checkpoints.push({ x:1900, y:GROUND_Y-60 });
+        checkpoints.push({ x:3700, y:GROUND_Y-60 });
+        checkpoints.push({ x:5600, y:300-60 });
+
+        const P=(x,y,w,h=28)=>platforms.push({x,y,w,h});
+        P(500,420,200); P(860,320,100);
+        P(1120,220,200); P(1680,410,100);
+        P(1950,350,200); P(2400,350,200);
+        P(2700,410,100); P(3300,450,100);
+        P(3600,410,150); P(3900,250,200);
+        P(3600,180,100); P(4300,180,100);
+        P(4500,450,100); P(4770,450,100);
+        P(5140,390,500); P(5800,390,500);
+        P(6300,440,100);
+        P(6400,480,100); P(6500,520,100);
+
+        hazards.push({ type:"water", x:780,  y:GROUND_Y-4, w:280, h:24 });
+        hazards.push({ type:"lava",  x:2100, y:GROUND_Y-4, w:560, h:24 });
+        hazards.push({ type:"water", x:3320, y:GROUND_Y-4, w:320, h:24 });
+        hazards.push({ type:"lava",  x:4300, y:GROUND_Y-4, w:360, h:24 });
+        hazards.push({ type:"lava",  x:5850, y:GROUND_Y-4, w:420, h:24 });
+
+        const S=(x,y,w,h=26)=>spikes.push({x,y,w,h});
+        S(1350,GROUND_Y-26,140);
+        S(3650,GROUND_Y-26,160);
+        S(5050,GROUND_Y-26,100);
+        S(540+40, 410-26,40);
+        S(1980+60,340-26,20);
+        S(2430+60,340-26,20);
+        S(5800+40,400-26,100);
+
+        const hp=[
+          [600,300],[1212,160],[1212,520],[1730,520],[2050,220],
+          [2500,220],[2900,520],[3990,520],[3990,200],[3650,130],
+          [4350,130],[4820,520],[5300,520],[6000,350],[6700,520],
+        ];
+        hp.forEach((p,i)=>hearts.push({ i, x:p[0], y:p[1], w:32, h:32, taken:false, answered:false }));
+
+        const E=(x,kind)=>enemies.push({
+          kind, x,
+          y: (kind===2 ? (GROUND_Y-28) : (GROUND_Y-44)),  // ✅ monster-2 lower
+          w:44,h:44,
+          vx:(kind===1?170:210),
+          minX:x-140, maxX:x+140,
+          alive:true, hp:2, flash:0
+        });
+        E(1550,1); E(2750,2); E(3950,1); E(5400,2); E(6500,1);
+
+        prison.x = WORLD_W - 380;
+        prison.y = GROUND_Y - 210;
+        prison.doorOpen = false;
+
+        princess.active=false;
+        princess.reunited=false;
+        princess.x = prison.x + 150;
+        princess.y = GROUND_Y - 56;
+      }
+
+      // state
+      const player = { x:160, y:GROUND_Y-56, w:44, h:56, vx:0, vy:0, onGround:false, inv:0, dir:1, atkT:0, atkCd:0 };
+      let state = { started:false, pausedQ:false, finished:false, lives:3, correct:0 };
+      let activeHeart = -1;
+
+      // camera (✅ camY fix)
+      let camX=0, camY=0;
+      function updateCam(){
+        const viewW = W/ZOOM;
+        const viewH = H/ZOOM;
+
+        camX = clamp(player.x - viewW*0.45, 0, WORLD_W - viewW);
+
+        // keep ground visible (follow player but not too much)
+        camY = clamp(player.y - viewH*0.60, 0, WORLD_H - viewH);
+      }
+
+      function resetToCheckpoint(){
+        let cp = checkpoints[0];
+        for(const c of checkpoints) if(c.x <= player.x) cp=c;
+        player.x=cp.x; player.y=cp.y-player.h;
+        player.vx=0; player.vy=0; player.onGround=false;
+        player.inv=0; player.atkT=0; player.atkCd=0;
+      }
+
+      // modal
+      function openQ(i){
+        state.pausedQ=true;
+        activeHeart=i;
+        ui.modal.style.display="flex";
+        ui.toast.textContent="";
+        ui.toast.className="";
+        const q=QUESTIONS[i];
+        ui.qtext.textContent = `${i+1}/15 — ${q.q}`;
+        ui.qopts.innerHTML="";
+        q.options.forEach((opt,idx)=>{
+          const b=document.createElement("button");
+          b.className="btn";
+          b.textContent=opt;
+          b.onclick=()=>answerQ(idx);
+          ui.qopts.appendChild(b);
+        });
+      }
+      function closeQ(){
+        ui.modal.style.display="none";
+        state.pausedQ=false;
+        activeHeart=-1;
+      }
+      function answerQ(choice){
+        const q=QUESTIONS[activeHeart];
+        const ok = choice===q.correct;
+        if(ok){
+          ui.toast.textContent="Doğru! 💖";
+          ui.toast.className="ok";
+          hearts[activeHeart].answered=true;
+          state.correct++;
+          ui.score.textContent=String(state.correct);
+          if(state.correct>=15) prison.doorOpen=true;
+          setTimeout(closeQ,420);
+        }else{
+          ui.toast.textContent="Yanlış 😭 -1 can!";
+          ui.toast.className="danger";
+          hearts[activeHeart].taken=false;
+          setTimeout(()=>{
+            closeQ();
+            state.lives=Math.max(0,state.lives-1);
+            ui.lives.textContent=String(state.lives);
+            if(state.lives<=0) endGame(false);
+            else resetToCheckpoint();
+          },650);
+        }
+      }
+
+      function endGame(win){
+        state.finished=true;
+        state.pausedQ=true;
+        ui.modal.style.display="none";
+        ui.end.style.display="flex";
+        if(win){
+          ui.endTitle.textContent="15/15 💖 KAZANDIN!";
+          ui.endMsg.textContent="Lara'yı kurtardın. Şimdi sarılma zamanı 🥹💘";
+        }else{
+          ui.endTitle.textContent="Oyun Bitti 💔";
+          ui.endMsg.textContent="Bir daha dene… 😤";
+        }
+      }
+
+      // collisions
+      function moveCollide(dt){
+        player.x += player.vx*dt;
+        player.x = clamp(player.x,0,WORLD_W-player.w);
+
+        for(const p of platforms){
+          if(overlap(player,p)){
+            if(player.vx>0) player.x=p.x-player.w;
+            else if(player.vx<0) player.x=p.x+p.w;
+          }
+        }
+
+        player.vy += GRAV*dt;
+        player.y += player.vy*dt;
+        player.onGround=false;
+
+        for(const p of platforms){
+          if(overlap(player,p)){
+            if(player.vy>0){ player.y=p.y-player.h; player.vy=0; player.onGround=true; }
+            else if(player.vy<0){ player.y=p.y+p.h; player.vy=0; }
+          }
+        }
+
+        if(player.y > GROUND_Y + 500) loseLife();
+      }
+
+      // attack
+      function atkBox(){
+        const x = player.dir===1 ? (player.x+player.w+8) : (player.x-ATK_W-8);
+        const y = player.y+10;
+        return { x,y,w:ATK_W,h:ATK_H };
+      }
+      function doAttack(){
+        const hb=atkBox();
+        for(const e of enemies){
+          if(!e.alive) continue;
+          if(overlap(hb,e)){
+            e.hp--;
+            e.flash=0.12;
+            if(e.hp<=0) e.alive=false;
+          }
+        }
+      }
+
+      function loseLife(){
+        state.lives=Math.max(0,state.lives-1);
+        ui.lives.textContent=String(state.lives);
+        if(state.lives<=0) endGame(false);
+        else resetToCheckpoint();
+      }
+
+      function hitThings(dt){
+        if(player.inv>0) player.inv-=dt;
+
+        for(const hz of hazards){
+          if(overlap(player,hz) && player.inv<=0){
+            player.inv=0.7;
+            loseLife();
+            return;
+          }
+        }
+
+        for(const s of spikes){
+          if(overlap(player,s) && player.inv<=0){
+            const fromTop = player.vy>0 && (player.y+player.h-s.y)<18;
+            if(!fromTop){
+              player.inv=0.7;
+              loseLife();
+              return;
             }
-            window.addEventListener("resize", fitCanvas);
-            window.addEventListener("orientationchange", () => setTimeout(fitCanvas, 120));
+          }
+        }
 
-
-            const ui = {
-                score: document.getElementById("score"),
-                lives: document.getElementById("lives"),
-                start: document.getElementById("start"),
-                startBtn: document.getElementById("startBtn"),
-                modal: document.getElementById("modal"),
-                qtext: document.getElementById("qtext"),
-                qopts: document.getElementById("qopts"),
-                toast: document.getElementById("toast"),
-                end: document.getElementById("end"),
-                endTitle: document.getElementById("endTitle"),
-                endMsg: document.getElementById("endMsg"),
-                retry: document.getElementById("retry"),
-                editQs: document.getElementById("editQs"),
-            };
-
-            const keys = new Set();
-            const normKey = (e) => ((e.key || "").toLowerCase() === " " ? "space" : (e.key || "").toLowerCase());
-            const down = (...arr) => arr.some(x => keys.has(x));
-
-            window.addEventListener("keydown", (e) => {
-                const k = normKey(e);
-                if (["arrowleft", "arrowright", "arrowup", "a", "d", "w", "space", "k"].includes(k)) e.preventDefault();
-                keys.add(e.code); keys.add(k);
-            }, { passive: false });
-
-            window.addEventListener("keyup", (e) => {
-                keys.delete(e.code); keys.delete(normKey(e));
-            }, { passive: false });
-
-            function bindHold(el, keyName) {
-                const on = (ev) => { ev.preventDefault(); keys.add(keyName); };
-                const off = (ev) => { ev.preventDefault(); keys.delete(keyName); };
-                el.addEventListener("pointerdown", on, { passive: false });
-                el.addEventListener("pointerup", off, { passive: false });
-                el.addEventListener("pointercancel", off, { passive: false });
-                el.addEventListener("pointerleave", off, { passive: false });
+        for(const e of enemies){
+          if(!e.alive) continue;
+          if(e.flash>0) e.flash-=dt;
+          if(overlap(player,e) && player.inv<=0){
+            const stomp = player.vy>0 && (player.y+player.h-e.y)<20;
+            if(stomp){
+              e.hp--; e.flash=0.12;
+              player.vy=-600;
+              if(e.hp<=0) e.alive=false;
+            }else{
+              player.inv=0.7;
+              loseLife();
+              return;
             }
-            bindHold(document.getElementById("btnLeft"), "a");
-            bindHold(document.getElementById("btnRight"), "d");
-            bindHold(document.getElementById("btnJump"), "space");
-            bindHold(document.getElementById("btnAtk"), "k");
-
-            const IMG = {
-                hero: null, princess: null, heart: null,
-                lava: null, water: null, tile: null, spike: null,
-                m1: null, m2: null
-            };
-            const loadImg = (src) => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
-
-            async function loadAll() {
-                IMG.hero = await loadImg("./dogukan.png");
-                IMG.princess = await loadImg("./lara.png");
-                IMG.heart = await loadImg("./heart.png");
-                IMG.lava = await loadImg("./lava.png");
-                IMG.water = await loadImg("./water.png");
-                IMG.tile = await loadImg("./tile.png");
-                IMG.spike = await loadImg("./spike.png");
-                IMG.m1 = await loadImg("./monster-1.png");
-                IMG.m2 = await loadImg("./monster-2.png");
-            }
-
-            const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-            const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-
-            function drawSprite(img, x, y, w, h, scale, anchor, fallback) {
-                const sw = w * scale, sh = h * scale;
-                const dx = x - (sw - w) / 2;
-                let dy = y;
-                if (anchor === "feet") dy = y - (sh - h);
-                else if (anchor === "center") dy = y - (sh - h) / 2;
-                if (img) ctx.drawImage(img, dx, dy, sw, sh);
-                else { ctx.fillStyle = fallback; ctx.fillRect(dx, dy, sw, sh); }
-            }
-
-            function drawTiles(img, x, y, w, h, fallback) {
-                if (!img) { ctx.fillStyle = fallback; ctx.fillRect(x, y, w, h); return; }
-                const cols = Math.ceil(w / TILE);
-                const rows = Math.ceil(h / TILE);
-                for (let ry = 0; ry < rows; ry++) {
-                    for (let cx = 0; cx < cols; cx++) {
-                        ctx.drawImage(img, x + cx * TILE, y + ry * TILE, TILE, TILE);
-                    }
-                }
-            }
-
-            const GRAV = 2400, MOVE = 540, JUMP = 980;
-            const ATK_W = 70, ATK_H = 44, ATK_TIME = 0.12, ATK_CD = 0.22;
-
-            const platforms = [];
-            const hazards = [];
-            const spikes = [];
-            const enemies = [];
-            const hearts = [];
-            const checkpoints = [];
-
-            const prison = { x: WORLD_W - 380, y: GROUND_Y - 210, w: 260, h: 210, doorOpen: false };
-            const princess = { x: 0, y: 0, active: false, reunited: false, speed: 240 };
-
-            // particles (limitli, mobil friendly)
-            const particles = [];     // prenses yürürken küçük kalpler
-            const heartPops = [];     // kalp alınca pop
-            const smokePuffs = [];    // monster ölünce duman
-            const doorBeams = [];     // kapı açılınca ışık
-            const sparkles = [];      // checkpoint sparkle
-            const finaleHearts = [];  // final kalp yağmuru
-
-            function cap(arr, n) { if (arr.length > n) arr.splice(0, arr.length - n); }
-
-            function spawnHeartParticle(x, y) {
-                particles.push({ x, y, vx: (Math.random() * 40 - 20), vy: -(60 + Math.random() * 60), life: 0.85, a: 1 });
-                cap(particles, 120);
-            }
-
-            function spawnHeartPop(x, y) {
-                heartPops.push({ x, y, t: 0 });
-                cap(heartPops, 20);
-            }
-
-            function spawnSmoke(x, y) {
-                for (let i = 0; i < 8; i++) {
-                    smokePuffs.push({
-                        x: x + (Math.random() * 18 - 9),
-                        y: y + (Math.random() * 10 - 5),
-                        vx: (Math.random() * 80 - 40),
-                        vy: -(80 + Math.random() * 70),
-                        life: 0.6 + Math.random() * 0.25,
-                        a: 1
-                    });
-                }
-                cap(smokePuffs, 160);
-            }
-
-            function spawnDoorBeam() {
-                // kapı çevresine 6 ışık çizgisi
-                for (let i = 0; i < 6; i++) {
-                    doorBeams.push({
-                        x: prison.x + 18 + 39,
-                        y: prison.y + 40 + Math.random() * (prison.h - 80),
-                        vx: (120 + Math.random() * 120),
-                        life: 0.6 + Math.random() * 0.25,
-                        a: 1
-                    });
-                }
-                cap(doorBeams, 60);
-            }
-
-            function spawnSparkle(x, y) {
-                for (let i = 0; i < 10; i++) {
-                    sparkles.push({
-                        x: x + (Math.random() * 50 - 25),
-                        y: y - 30 + (Math.random() * 25 - 12),
-                        vx: (Math.random() * 80 - 40),
-                        vy: -(80 + Math.random() * 70),
-                        life: 0.6 + Math.random() * 0.25,
-                        a: 1
-                    });
-                }
-                cap(sparkles, 200);
-            }
-
-            function spawnFinalHearts() {
-                for (let i = 0; i < 20; i++) {
-                    finaleHearts.push({
-                        x: camX + Math.random() * (W / ZOOM),
-                        y: -20 - Math.random() * 120,
-                        vy: 140 + Math.random() * 240,
-                        life: 2.2 + Math.random() * 1.3,
-                        s: 4 + Math.random() * 4
-                    });
-                }
-                cap(finaleHearts, 140);
-            }
-
-            // checkpoint / toast
-            let currentCP = { x: 160, y: GROUND_Y - 60 };
-            let toastCP = { t: 0, msg: "" };
-            function showToast(msg) { toastCP.msg = msg; toastCP.t = 1.2; }
-
-            // shake
-            let shakeT = 0;
-            function shakeSmall() { shakeT = 0.25; }
-
-            // audio
-            let audioCtx = null;
-            function ensureAudio() {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === "suspended") audioCtx.resume();
-            }
-            function beep(freq, dur) {
-                if (!audioCtx) return;
-                const o = audioCtx.createOscillator();
-                const g = audioCtx.createGain();
-                o.type = "sine";
-                o.frequency.value = freq;
-                g.gain.value = 0.06;
-                o.connect(g); g.connect(audioCtx.destination);
-                o.start();
-                o.stop(audioCtx.currentTime + dur);
-            }
-            function sfxPick() { beep(880, 0.06); beep(1320, 0.05); }
-            function sfxOk() { beep(660, 0.08); beep(990, 0.08); }
-            function sfxBad() { beep(220, 0.12); }
-            function sfxSave() { beep(520, 0.06); beep(780, 0.06); }
-
-            function buildWorld() {
-                platforms.length = 0; hazards.length = 0; spikes.length = 0;
-                enemies.length = 0; hearts.length = 0; checkpoints.length = 0;
-
-                platforms.push({ x: 0, y: GROUND_Y, w: WORLD_W, h: 1600 });
-
-                checkpoints.push({ x: 160, y: GROUND_Y - 60 });
-                checkpoints.push({ x: 1900, y: GROUND_Y - 60 });
-                checkpoints.push({ x: 3700, y: GROUND_Y - 60 });
-                checkpoints.push({ x: 5600, y: 300 - 60 });
-
-                const P = (x, y, w, h = 28) => platforms.push({ x, y, w, h });
-                P(500, 420, 200); P(860, 320, 100);
-                P(1120, 220, 200); P(1680, 410, 100);
-                P(1950, 350, 200); P(2400, 350, 200);
-                P(2700, 410, 100); P(3300, 450, 100);
-                P(3600, 410, 150); P(3900, 250, 200);
-                P(3600, 180, 100); P(4300, 180, 100);
-                P(4500, 450, 100); P(4770, 450, 100);
-                P(5140, 390, 500); P(5800, 390, 500);
-                P(6300, 440, 100);
-                P(6400, 480, 100); P(6500, 520, 100);
-
-                hazards.push({ type: "water", x: 780, y: GROUND_Y - 4, w: 280, h: 24 });
-                hazards.push({ type: "lava", x: 2100, y: GROUND_Y - 4, w: 560, h: 24 });
-                hazards.push({ type: "water", x: 3320, y: GROUND_Y - 4, w: 320, h: 24 });
-                hazards.push({ type: "lava", x: 4300, y: GROUND_Y - 4, w: 360, h: 24 });
-                hazards.push({ type: "lava", x: 5850, y: GROUND_Y - 4, w: 420, h: 24 });
-
-                const S = (x, y, w, h = 26) => spikes.push({ x, y, w, h });
-                S(1350, GROUND_Y - 26, 140);
-                S(3650, GROUND_Y - 26, 160);
-                S(5050, GROUND_Y - 26, 100);
-                S(540 + 40, 410 - 26, 40);
-                S(1980 + 60, 340 - 26, 20);
-                S(2430 + 60, 340 - 26, 20);
-                S(5800 + 40, 400 - 26, 100);
-
-                const hp = [
-                    [600, 300], [1212, 160],
-                    [1212, 520], [1730, 520],
-                    [2050, 220], [2500, 220],
-                    [2900, 520], [3990, 520],
-                    [3990, 200], [3650, 130],
-                    [4350, 130], [4820, 520],
-                    [5300, 520], [6000, 350],
-                    [6700, 520],
-                ];
-                hp.forEach((p, i) => hearts.push({ i, x: p[0], y: p[1], w: 32, h: 32, taken: false, answered: false }));
-
-                const E = (x, kind) => enemies.push({
-                    kind,
-                    x,
-                    y: (kind === 2 ? (GROUND_Y - 28) : (GROUND_Y - 44)),
-                    w: 44, h: 44,
-                    vx: (kind === 1 ? 170 : 210),
-                    minX: x - 140, maxX: x + 140,
-                    alive: true,
-                    hp: 2 // ✅ NEW: 2 HP
-                });
-                E(1550, 1); E(2750, 2); E(3950, 1); E(5400, 2); E(6500, 1);
-
-                prison.doorOpen = false;
-
-                princess.active = false;
-                princess.reunited = false;
-                princess.x = prison.x + 150;
-                princess.y = GROUND_Y - 56;
-
-                currentCP = { x: 160, y: GROUND_Y - 60 };
-                toastCP = { t: 0, msg: "" };
-
-                particles.length = 0; heartPops.length = 0; smokePuffs.length = 0;
-                doorBeams.length = 0; sparkles.length = 0; finaleHearts.length = 0;
-                shakeT = 0;
-            }
-
-            const player = { x: 160, y: GROUND_Y - 56, w: 44, h: 56, vx: 0, vy: 0, onGround: false, inv: 0, dir: 1, atkT: 0, atkCd: 0 };
-            let state = { started: false, pausedQ: false, finished: false, lives: 3, correct: 0 };
-
-            // ✅ NEW: bonus life
-            let nextBonusAt = 5;
-
-            // ✅ NEW: finale scene
-            let finale = { active: false, t: 0, lock: 0 };
-
-            let activeHeart = -1;
-
-            let camX = 0;
-            function updateCam() {
-                const viewW = W / ZOOM;
-                camX = clamp(player.x - viewW * 0.45, 0, WORLD_W - viewW);
-            }
-
-            function resetToCheckpoint() {
-                player.x = currentCP.x; player.y = currentCP.y - player.h;
-                player.vx = 0; player.vy = 0; player.onGround = false;
-                player.inv = 0; player.atkT = 0; player.atkCd = 0;
-            }
-
-            function openQ(i) {
-                state.pausedQ = true;
-                activeHeart = i;
-                ui.modal.style.display = "flex";
-                ui.toast.textContent = "";
-                ui.toast.className = "";
-                const q = QUESTIONS[i];
-                ui.qtext.textContent = `${i + 1}/15 — ${q.q}`;
-                ui.qopts.innerHTML = "";
-                q.options.forEach((opt, idx) => {
-                    const b = document.createElement("button");
-                    b.className = "btn";
-                    b.textContent = opt;
-                    b.onclick = () => answerQ(idx);
-                    ui.qopts.appendChild(b);
-                });
-            }
-            function closeQ() {
-                ui.modal.style.display = "none";
-                state.pausedQ = false;
-                activeHeart = -1;
-            }
-
-            function awardBonusLifeIfNeeded() {
-                if (state.correct >= nextBonusAt) {
-                    nextBonusAt += 5;
-                    state.lives = Math.min(5, state.lives + 1);
-                    ui.lives.textContent = String(state.lives);
-                    showToast("Bonus can! ❤️");
-                    beep(880, 0.08); beep(1175, 0.08); beep(1568, 0.08);
-                }
-            }
-
-            function answerQ(choice) {
-                const q = QUESTIONS[activeHeart];
-                const ok = choice === q.correct;
-
-                if (ok) {
-                    ui.toast.textContent = "Doğru! 💖";
-                    ui.toast.className = "ok";
-                    hearts[activeHeart].answered = true;
-                    state.correct += 1;
-                    ui.score.textContent = String(state.correct);
-                    sfxOk();
-
-                    awardBonusLifeIfNeeded();
-
-                    if (state.correct >= 15 && !prison.doorOpen) {
-                        prison.doorOpen = true;
-                        shakeSmall();
-                        spawnDoorBeam();
-                        showToast("Zindan açıldı! 💖");
-                    }
-                    setTimeout(closeQ, 420);
-                } else {
-                    ui.toast.textContent = "Yanlış 😭 -1 can!";
-                    ui.toast.className = "danger";
-                    hearts[activeHeart].taken = false;
-                    sfxBad();
-                    setTimeout(() => {
-                        closeQ();
-                        loseLife();
-                    }, 650);
-                }
-            }
-
-            function endGame(win) {
-                state.finished = true;
-                state.pausedQ = true;
-                ui.modal.style.display = "none";
-                ui.end.style.display = "flex";
-                if (win) {
-                    ui.endTitle.textContent = "15/15 💖 KAZANDIN!";
-                    ui.endMsg.textContent = "Lara'yı kurtardın. Şimdi sarılma zamanı 🥹💘";
-                } else {
-                    ui.endTitle.textContent = "Oyun Bitti 💔";
-                    ui.endMsg.textContent = "Bir daha dene… 😤";
-                }
-            }
-
-            function moveCollide(dt) {
-                player.x += player.vx * dt;
-                player.x = clamp(player.x, 0, WORLD_W - player.w);
-
-                for (const p of platforms) {
-                    if (overlap(player, p)) {
-                        if (player.vx > 0) player.x = p.x - player.w;
-                        else if (player.vx < 0) player.x = p.x + p.w;
-                    }
-                }
-
-                player.vy += GRAV * dt;
-                player.y += player.vy * dt;
-                player.onGround = false;
-
-                for (const p of platforms) {
-                    if (overlap(player, p)) {
-                        if (player.vy > 0) { player.y = p.y - player.h; player.vy = 0; player.onGround = true; }
-                        else if (player.vy < 0) { player.y = p.y + p.h; player.vy = 0; }
-                    }
-                }
-
-                if (player.y > GROUND_Y + 500) loseLife();
-            }
-
-            function atkBox() {
-                const x = player.dir === 1 ? (player.x + player.w + 8) : (player.x - ATK_W - 8);
-                const y = player.y + 10;
-                return { x, y, w: ATK_W, h: ATK_H };
-            }
-
-            function doAttack() {
-                const hb = atkBox();
-                for (const e of enemies) {
-                    if (!e.alive) continue;
-                    if (overlap(hb, e)) {
-                        e.hp -= 1;
-                        // mini flash
-                        e.flash = 0.12;
-                        if (e.hp <= 0) {
-                            e.alive = false;
-                            spawnSmoke(e.x + 22, e.y + 22);
-                        }
-                    }
-                }
-            }
-
-            function loseLife() {
-                state.lives = Math.max(0, state.lives - 1);
-                ui.lives.textContent = String(state.lives);
-                if (state.lives <= 0) endGame(false);
-                else resetToCheckpoint();
-            }
-
-            function hitThings(dt) {
-                if (player.inv > 0) player.inv -= dt;
-
-                for (const hz of hazards) {
-                    if (overlap(player, hz) && player.inv <= 0) {
-                        player.inv = 0.7;
-                        loseLife();
-                        return;
-                    }
-                }
-
-                // spikes: üstten basarsan zarar yok, yandan/alttan zarar
-                for (const s of spikes) {
-                    if (overlap(player, s) && player.inv <= 0) {
-                        const fromTop = player.vy > 0 && (player.y + player.h - s.y) < 18;
-                        if (!fromTop) {
-                            player.inv = 0.7;
-                            loseLife();
-                            return;
-                        }
-                    }
-                }
-
-                for (const e of enemies) {
-                    if (!e.alive) continue;
-                    if (overlap(player, e) && player.inv <= 0) {
-                        const stomp = player.vy > 0 && (player.y + player.h - e.y) < 20;
-                        if (stomp) {
-                            e.hp -= 1;
-                            e.flash = 0.12;
-                            player.vy = -600;
-                            if (e.hp <= 0) {
-                                e.alive = false;
-                                spawnSmoke(e.x + 22, e.y + 22);
-                            }
-                        } else {
-                            player.inv = 0.7;
-                            loseLife();
-                            return;
-                        }
-                    }
-                }
-            }
-
-            function updateCheckpoint() {
-                let best = currentCP;
-                for (const c of checkpoints) {
-                    if (c.x <= player.x && c.x >= best.x) best = c;
-                }
-                if (best.x !== currentCP.x) {
-                    currentCP = { x: best.x, y: best.y };
-                    showToast("Kayıt alındı! ✅");
-                    sfxSave();
-                    spawnSparkle(currentCP.x, currentCP.y);
-                }
-            }
-
-            function drawCheckpointFlag(x, y) {
-                ctx.globalAlpha = 0.9;
-                ctx.fillStyle = "rgba(255,255,255,.16)";
-                ctx.fillRect(x - 5, y - 56, 10, 56);
-                ctx.fillStyle = "rgba(255,120,170,.85)";
-                ctx.fillRect(x + 5, y - 50, 36, 18);
-                ctx.fillStyle = "rgba(255,255,255,.35)";
-                ctx.fillRect(x + 5, y - 32, 26, 4);
-                ctx.globalAlpha = 1;
-            }
-
-            function drawFinalOverlay() {
-                // soft overlay + text
-                ctx.save();
-                ctx.globalAlpha = 0.55;
-                ctx.fillStyle = "rgba(0,0,0,1)";
-                ctx.fillRect(0, 0, W, H);
-                ctx.globalAlpha = 1;
-                ctx.fillStyle = "rgba(255,255,255,.92)";
-                ctx.textAlign = "center";
-                ctx.font = "900 34px system-ui";
-                ctx.fillText("Sevgililer Günümüz Kutlu Olsun 💖", W / 2, H / 2 - 10);
-                ctx.font = "800 18px system-ui";
-                ctx.fillStyle = "rgba(255,255,255,.75)";
-                ctx.fillText("Aşk seviyesi: 15/15 🥹💘", W / 2, H / 2 + 24);
-                ctx.restore();
-            }
-
-            function draw() {
-                ctx.fillStyle = "#0b0b10";
-                ctx.fillRect(0, 0, W, H);
-
-                let shx = 0, shy = 0;
-                if (shakeT > 0) {
-                    const s = 6;
-                    shx = (Math.random() * 2 - 1) * s;
-                    shy = (Math.random() * 2 - 1) * s;
-                }
-
-                ctx.save();
-                ctx.setTransform(ZOOM, 0, 0, ZOOM, (-camX * ZOOM) + shx, shy);
-
-                for (const p of platforms) {
-                    drawTiles(IMG.tile, p.x, p.y, p.w, p.h, "rgba(255,255,255,.08)");
-                    ctx.fillStyle = "rgba(255,255,255,.10)";
-                    ctx.fillRect(p.x, p.y, p.w, 6);
-                }
-
-                for (const hz of hazards) {
-                    const img = hz.type === "lava" ? IMG.lava : IMG.water;
-                    const fb = hz.type === "lava" ? "rgba(255,90,60,.75)" : "rgba(80,170,255,.70)";
-                    drawTiles(img, hz.x, hz.y, hz.w, hz.h, fb);
-                }
-
-                for (const s of spikes) {
-                    drawTiles(IMG.spike, s.x, s.y, s.w, s.h, "rgba(255,80,110,.85)");
-                }
-
-                // checkpoint flags
-                for (const c of checkpoints) drawCheckpointFlag(c.x, c.y);
-
-                // checkpoint sparkles
-                for (const sp of sparkles) {
-                    ctx.globalAlpha = 0.9 * sp.a;
-                    ctx.fillStyle = "rgba(124,255,178,1)";
-                    ctx.fillRect(sp.x, sp.y, 4, 4);
-                }
-                ctx.globalAlpha = 1;
-
-                // door beams
-                for (const b of doorBeams) {
-                    ctx.globalAlpha = 0.55 * b.a;
-                    ctx.fillStyle = "rgba(124,255,178,1)";
-                    ctx.fillRect(b.x, b.y, 4, 16);
-                }
-                ctx.globalAlpha = 1;
-
-                // heart pops
-                for (const pop of heartPops) {
-                    const k = pop.t;
-                    const scale = SPRITE_SCALE * (1.0 + 0.65 * (1 - k));
-                    const a = Math.max(0, 1 - k);
-                    ctx.globalAlpha = 0.85 * a;
-                    drawSprite(IMG.heart, pop.x, pop.y, 32, 32, scale, "center", "rgba(255,120,170,.95)");
-                    ctx.globalAlpha = 1;
-                }
-
-                // hearts
-                for (const h of hearts) {
-                    if (h.answered) continue;
-                    if (!h.taken) drawSprite(IMG.heart, h.x, h.y, h.w, h.h, SPRITE_SCALE, "center", "rgba(255,120,170,.95)");
-                }
-
-                // prison
-                ctx.fillStyle = "rgba(255,255,255,.08)";
-                ctx.fillRect(prison.x, prison.y, prison.w, prison.h);
-                ctx.fillStyle = prison.doorOpen ? "rgba(124,255,178,.22)" : "rgba(255,120,170,.22)";
-                ctx.fillRect(prison.x + 18, prison.y + 22, 78, prison.h - 44);
-
-                // enemies
-                for (const e of enemies) {
-                    if (!e.alive) continue;
-                    const img = e.kind === 1 ? IMG.m1 : IMG.m2;
-                    if (e.flash > 0) {
-                        ctx.globalAlpha = 0.65;
-                        drawSprite(img, e.x, e.y, e.w, e.h, SPRITE_SCALE, "feet", "rgba(255,255,255,.95)");
-                        ctx.globalAlpha = 1;
-                    } else {
-                        drawSprite(img, e.x, e.y, e.w, e.h, SPRITE_SCALE, "feet", "rgba(120,255,190,.95)");
-                    }
-                }
-
-                // smoke
-                for (const sm of smokePuffs) {
-                    ctx.globalAlpha = 0.6 * sm.a;
-                    ctx.fillStyle = "rgba(255,255,255,1)";
-                    ctx.fillRect(sm.x, sm.y, 5, 5);
-                }
-                ctx.globalAlpha = 1;
-
-                // princess walking hearts
-                for (const p of particles) {
-                    ctx.globalAlpha = 0.7 * p.a;
-                    ctx.fillStyle = "rgba(255,120,170,1)";
-                    ctx.fillRect(p.x, p.y, 6, 6);
-                }
-                ctx.globalAlpha = 1;
-
-                drawSprite(IMG.princess, princess.x, princess.y, 42, 54, SPRITE_SCALE, "feet", "rgba(255,180,220,.95)");
-                drawSprite(IMG.hero, player.x, player.y, player.w, player.h, SPRITE_SCALE, "feet", "rgba(120,170,255,.95)");
-
-                if (player.atkT > 0) {
-                    const hb = atkBox();
-                    ctx.globalAlpha = 0.18;
-                    ctx.fillStyle = "rgba(255,255,255,.9)";
-                    ctx.fillRect(hb.x, hb.y, hb.w, hb.h);
-                    ctx.globalAlpha = 1;
-                }
-
-                // toast
-                if (toastCP.t > 0) {
-                    ctx.globalAlpha = Math.min(1, toastCP.t);
-                    ctx.fillStyle = "rgba(0,0,0,.55)";
-                    ctx.fillRect(camX + 18, 18, 300, 44);
-                    ctx.fillStyle = "rgba(255,255,255,.92)";
-                    ctx.font = "16px system-ui";
-                    ctx.fillText(toastCP.msg, camX + 30, 46);
-                    ctx.globalAlpha = 1;
-                }
-
-                ctx.restore();
-
-                // finale rain + overlay (screen space)
-                if (finale.active) {
-                    // hearts rain
-                    ctx.save();
-                    ctx.globalAlpha = 0.9;
-                    ctx.fillStyle = "rgba(255,120,170,1)";
-                    for (const fh of finaleHearts) {
-                        ctx.fillRect(fh.x * (window.devicePixelRatio ? 1 : 1), fh.y * 1, fh.s, fh.s);
-                    }
-                    ctx.restore();
-
-                    drawFinalOverlay();
-                }
-            }
-
-            function updateParticles(dt) {
-                // princess hearts
-                for (let i = particles.length - 1; i >= 0; i--) {
-                    const p = particles[i];
-                    p.life -= dt;
-                    p.x += p.vx * dt;
-                    p.y += p.vy * dt;
-                    p.vy += 220 * dt;
-                    p.a = Math.max(0, p.life / 0.85);
-                    if (p.life <= 0) particles.splice(i, 1);
-                }
-
-                // heart pops
-                for (let i = heartPops.length - 1; i >= 0; i--) {
-                    const pop = heartPops[i];
-                    pop.t += dt * 2.2;
-                    if (pop.t >= 1) heartPops.splice(i, 1);
-                }
-
-                // smoke
-                for (let i = smokePuffs.length - 1; i >= 0; i--) {
-                    const sm = smokePuffs[i];
-                    sm.life -= dt;
-                    sm.x += sm.vx * dt;
-                    sm.y += sm.vy * dt;
-                    sm.vy += 180 * dt;
-                    sm.a = Math.max(0, sm.life / 0.85);
-                    if (sm.life <= 0) smokePuffs.splice(i, 1);
-                }
-
-                // door beams
-                for (let i = doorBeams.length - 1; i >= 0; i--) {
-                    const b = doorBeams[i];
-                    b.life -= dt;
-                    b.x += b.vx * dt;
-                    b.a = Math.max(0, b.life / 0.85);
-                    if (b.life <= 0) doorBeams.splice(i, 1);
-                }
-
-                // sparkles
-                for (let i = sparkles.length - 1; i >= 0; i--) {
-                    const sp = sparkles[i];
-                    sp.life -= dt;
-                    sp.x += sp.vx * dt;
-                    sp.y += sp.vy * dt;
-                    sp.vy += 220 * dt;
-                    sp.a = Math.max(0, sp.life / 0.85);
-                    if (sp.life <= 0) sparkles.splice(i, 1);
-                }
-
-                // finale hearts rain
-                if (finale.active) {
-                    if (Math.random() < 0.65) spawnFinalHearts();
-                    for (let i = finaleHearts.length - 1; i >= 0; i--) {
-                        const fh = finaleHearts[i];
-                        fh.life -= dt;
-                        fh.y += fh.vy * dt;
-                        if (fh.life <= 0 || fh.y > H + 40) finaleHearts.splice(i, 1);
-                    }
-                }
-            }
-
-            function update(dt) {
-                if (!state.started) return;
-                if (state.finished) return;
-                if (state.pausedQ) return;
-
-                // finale lock (2sn)
-                if (finale.active) {
-                    finale.t += dt;
-                    if (finale.t >= 2.0) {
-                        finale.active = false;
-                        endGame(true);
-                    }
-                    updateParticles(dt);
-                    if (toastCP.t > 0) toastCP.t -= dt;
-                    if (shakeT > 0) shakeT -= dt;
-                    return;
-                }
-
-                if (player.atkCd > 0) player.atkCd -= dt;
-                if (player.atkT > 0) player.atkT -= dt;
-
-                const left = down("ArrowLeft", "KeyA", "a");
-                const right = down("ArrowRight", "KeyD", "d");
-                const jump = down("Space", "space", "ArrowUp", "KeyW", "w");
-                const atk = down("KeyK", "k");
-
-                player.vx = 0;
-                if (left) { player.vx -= MOVE; player.dir = -1; }
-                if (right) { player.vx += MOVE; player.dir = 1; }
-                if (jump && player.onGround) player.vy = -JUMP;
-
-                if (atk && player.atkCd <= 0) {
-                    player.atkT = ATK_TIME;
-                    player.atkCd = ATK_CD;
-                    doAttack();
-                }
-
-                for (const e of enemies) {
-                    if (!e.alive) continue;
-                    if (e.flash > 0) e.flash -= dt;
-                    e.x += e.vx * dt;
-                    if (e.x < e.minX) { e.x = e.minX; e.vx *= -1; }
-                    if (e.x > e.maxX) { e.x = e.maxX; e.vx *= -1; }
-                }
-
-                moveCollide(dt);
-                hitThings(dt);
-                updateCheckpoint();
-
-                for (const h of hearts) {
-                    if (h.answered) continue;
-                    if (!h.taken && overlap(player, h)) {
-                        h.taken = true;
-                        spawnHeartPop(h.x, h.y);
-                        sfxPick();
-                        openQ(h.i);
-                        break;
-                    }
-                }
-
-                if (state.correct >= 15 && !prison.doorOpen) {
-                    prison.doorOpen = true;
-                    shakeSmall();
-                    spawnDoorBeam();
-                    showToast("Zindan açıldı! 💖");
-                }
-
-                // princess walk + meet => finale
-                if (prison.doorOpen && !princess.reunited) {
-                    if (!princess.active) {
-                        princess.active = true;
-                        princess.x = prison.x + 150;
-                        princess.y = GROUND_Y - 56;
-                    }
-
-                    const targetX = player.x + (player.dir === 1 ? 36 : -36);
-                    const dx = targetX - princess.x;
-                    const step = princess.speed * dt;
-
-                    if (Math.abs(dx) <= step) princess.x = targetX;
-                    else princess.x += Math.sign(dx) * step;
-
-                    if (princess.active && Math.abs(dx) > 2) {
-                        if (Math.random() < 0.55) spawnHeartParticle(princess.x + 20, princess.y - 10);
-                    }
-
-                    const meet = Math.abs(princess.x - player.x) < 28 && Math.abs(princess.y - player.y) < 80;
-                    if (meet) {
-                        princess.reunited = true;
-
-                        // ✅ finale start (2sn)
-                        finale.active = true;
-                        finale.t = 0;
-                        showToast("SARILMA MODU 💖");
-                        shakeSmall();
-                        spawnFinalHearts();
-                        spawnFinalHearts();
-                    }
-                }
-
-                updateParticles(dt);
-
-                if (shakeT > 0) shakeT -= dt;
-                if (toastCP.t > 0) toastCP.t -= dt;
-
-                updateCam();
-            }
-
-            ui.retry.onclick = () => {
-                ui.end.style.display = "none";
-                state = { started: true, pausedQ: false, finished: false, lives: 3, correct: 0 };
-                nextBonusAt = 5;
-                finale = { active: false, t: 0, lock: 0 };
-                ui.lives.textContent = "3";
-                ui.score.textContent = "0";
-                buildWorld();
-                player.x = 160; player.y = GROUND_Y - player.h - 2;
-                updateCam();
-                canvas.focus();
-            };
-            ui.editQs.onclick = () => alert("Kodda QUESTIONS dizisini düzenle 🫶");
-
-            ui.startBtn.onclick = () => {
-                ensureAudio();
-                state.started = true;
-                ui.start.style.display = "none";
-                canvas.focus();
-            };
-            canvas.addEventListener("pointerdown", () => canvas.focus());
-
-            let last = performance.now();
-            function frame(now) {
-                fitCanvas();
-                const dt = Math.min(0.033, (now - last) / 1000);
-                last = now;
-                update(dt);
-                draw();
-                requestAnimationFrame(frame);
-            }
-
-            function init() {
-                ui.lives.textContent = "3";
-                ui.score.textContent = "0";
-                buildWorld();
-                player.x = 160; player.y = GROUND_Y - player.h - 2;
-                updateCam();
-                requestAnimationFrame(frame);
-            }
-
-            loadAll().then(init);
-        })();
-    </script>
+          }
+        }
+      }
+
+      // draw
+      function draw(){
+        ctx.fillStyle="#0b0b10";
+        ctx.fillRect(0,0,W,H);
+
+        ctx.save();
+        ctx.setTransform(ZOOM,0,0,ZOOM, -camX*ZOOM, -camY*ZOOM);
+
+        for(const p of platforms){
+          drawTiles(IMG.tile,p.x,p.y,p.w,p.h,"rgba(255,255,255,.08)");
+          ctx.fillStyle="rgba(255,255,255,.10)";
+          ctx.fillRect(p.x,p.y,p.w,6);
+        }
+
+        for(const hz of hazards){
+          const img = hz.type==="lava" ? IMG.lava : IMG.water;
+          const fb  = hz.type==="lava" ? "rgba(255,90,60,.75)" : "rgba(80,170,255,.70)";
+          drawTiles(img,hz.x,hz.y,hz.w,hz.h,fb);
+        }
+
+        for(const s of spikes){
+          drawTiles(IMG.spike,s.x,s.y,s.w,s.h,"rgba(255,80,110,.85)");
+        }
+
+        for(const h of hearts){
+          if(h.answered) continue;
+          if(!h.taken) drawSprite(IMG.heart,h.x,h.y,h.w,h.h,SPRITE_SCALE,"center","rgba(255,120,170,.95)");
+        }
+
+        ctx.fillStyle="rgba(255,255,255,.08)";
+        ctx.fillRect(prison.x,prison.y,prison.w,prison.h);
+        ctx.fillStyle = prison.doorOpen ? "rgba(124,255,178,.22)" : "rgba(255,120,170,.22)";
+        ctx.fillRect(prison.x+18, prison.y+22, 78, prison.h-44);
+
+        for(const e of enemies){
+          if(!e.alive) continue;
+          const img = e.kind===1 ? IMG.m1 : IMG.m2;
+          if(e.flash>0){
+            ctx.globalAlpha=0.6;
+            drawSprite(img,e.x,e.y,e.w,e.h,SPRITE_SCALE,"feet","rgba(255,255,255,.95)");
+            ctx.globalAlpha=1;
+          }else{
+            drawSprite(img,e.x,e.y,e.w,e.h,SPRITE_SCALE,"feet","rgba(120,255,190,.95)");
+          }
+        }
+
+        // princess: door open -> walk to hero
+        if(prison.doorOpen && !princess.reunited){
+          princess.active = true;
+        }
+
+        if(princess.active && !princess.reunited){
+          const targetX = player.x + (player.dir===1 ? 36 : -36);
+          const dx = targetX - princess.x;
+          const step = princess.speed * (1/60);
+          if(Math.abs(dx) <= step) princess.x = targetX;
+          else princess.x += Math.sign(dx) * step;
+        }
+
+        drawSprite(IMG.princess, princess.x, princess.y, 42, 54, SPRITE_SCALE, "feet", "rgba(255,180,220,.95)");
+        drawSprite(IMG.hero, player.x, player.y, player.w, player.h, SPRITE_SCALE, "feet", "rgba(120,170,255,.95)");
+
+        if(player.atkT>0){
+          const hb=atkBox();
+          ctx.globalAlpha=0.18;
+          ctx.fillStyle="rgba(255,255,255,.9)";
+          ctx.fillRect(hb.x,hb.y,hb.w,hb.h);
+          ctx.globalAlpha=1;
+        }
+
+        ctx.restore();
+      }
+
+      // update
+      function update(dt){
+        if(!state.started) return;
+        if(state.finished) return;
+        if(state.pausedQ) return;
+
+        if(player.atkCd>0) player.atkCd-=dt;
+        if(player.atkT>0) player.atkT-=dt;
+
+        const left = down("ArrowLeft","KeyA","a");
+        const right= down("ArrowRight","KeyD","d");
+        const jump = down("Space","space","ArrowUp","KeyW","w");
+        const atk  = down("KeyK","k");
+
+        player.vx=0;
+        if(left){ player.vx-=MOVE; player.dir=-1; }
+        if(right){ player.vx+=MOVE; player.dir=1; }
+        if(jump && player.onGround) player.vy=-JUMP;
+
+        if(atk && player.atkCd<=0){
+          player.atkT=ATK_TIME;
+          player.atkCd=ATK_CD;
+          doAttack();
+        }
+
+        for(const e of enemies){
+          if(!e.alive) continue;
+          e.x += e.vx*dt;
+          if(e.x<e.minX){ e.x=e.minX; e.vx*=-1; }
+          if(e.x>e.maxX){ e.x=e.maxX; e.vx*=-1; }
+        }
+
+        moveCollide(dt);
+        hitThings(dt);
+
+        for(const h of hearts){
+          if(h.answered) continue;
+          if(!h.taken && overlap(player,h)){
+            h.taken=true;
+            openQ(h.i);
+            break;
+          }
+        }
+
+        if(state.correct>=15) prison.doorOpen=true;
+
+        if(prison.doorOpen && !princess.reunited){
+          const pr = { x: princess.x, y: princess.y, w:42, h:54 };
+          if(overlap(player, pr)){
+            princess.reunited = true;
+            endGame(true);
+          }
+        }
+
+        updateCam();
+      }
+
+      // ui buttons
+      ui.retry.onclick = () => {
+        ui.end.style.display="none";
+        state = { started:true, pausedQ:false, finished:false, lives:3, correct:0 };
+        ui.lives.textContent="3";
+        ui.score.textContent="0";
+        buildWorld();
+        player.x=160; player.y=GROUND_Y-player.h-2;
+        princess.x = prison.x + 150;
+        princess.y = GROUND_Y - 56;
+        princess.active=false;
+        princess.reunited=false;
+        updateCam();
+        canvas.focus();
+      };
+      ui.editQs.onclick = () => alert("Kodda QUESTIONS dizisini düzenle 🫶");
+
+      ui.startBtn.onclick = () => {
+        state.started=true;
+        ui.start.style.display="none";
+        canvas.focus();
+      };
+      canvas.addEventListener("pointerdown", () => canvas.focus());
+
+      // loop
+      let last = performance.now();
+      function frame(now){
+        fitCanvas();
+        const dt = Math.min(0.033, (now-last)/1000);
+        last=now;
+        update(dt);
+        draw();
+        requestAnimationFrame(frame);
+      }
+
+      function init(){
+        updateZoom();
+        fitCanvas();
+        ui.lives.textContent="3";
+        ui.score.textContent="0";
+        buildWorld();
+        player.x=160; player.y=GROUND_Y-player.h-2;
+        updateCam();
+        requestAnimationFrame(frame);
+      }
+
+      loadAll().then(init);
+    })();
+  </script>
 </body>
-
 </html>
