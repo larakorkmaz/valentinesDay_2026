@@ -13,7 +13,7 @@
       background:#0b0b10;
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
       overscroll-behavior:none;
-      overflow:hidden; /* no scroll */
+      overflow:hidden;
     }
 
     #wrap{
@@ -204,7 +204,6 @@
       #touchUI{ display:none; }
     }
 
-    /* mobile full-screen */
     @media (max-width: 900px){
       #wrap{ place-items:stretch; }
       canvas{
@@ -273,9 +272,12 @@
 <script>
 (() => {
   // camera + scale
-  let ZOOM = 1.0;           // ✅ desktop default
+  let ZOOM = 1.35;             // ✅ desktop için ideal
   const SPRITE_SCALE = 3.0;
   const TILE = 32;
+
+  const BASE_W = 1280;         // ✅ desktop canvas iç çözünürlüğü sabit
+  const BASE_H = 720;
 
   const WORLD_W = 7600;
   const GROUND_Y = 600;
@@ -304,28 +306,41 @@
   ctx.imageSmoothingEnabled = false;
   let W = canvas.width, H = canvas.height;
 
-  // ✅ FIX: resize only when needed (no "self zoom")
+  // resize flag
   let NEEDS_RESIZE = true;
 
-  // ✅ FIX: stable zoom (mobile closer, desktop normal)
   function updateZoom(){
     const isMobile = window.innerWidth < 900;
-    ZOOM = isMobile ? 2.05 : 1.0;   // ✅ desktop zoom removed
+    ZOOM = isMobile ? 2.05 : 1.35;   // desktop: 1.35 (istersen 1.25 yap)
   }
 
-  // ✅ FIX: 1:1 canvas resolution with CSS size (no DPR amplification)
+  // ✅ FIX: Desktop sabit 1280x720, Mobile DPR ile net
   function fitCanvas(){
     const rect = canvas.getBoundingClientRect();
-    const targetW = Math.max(1, Math.round(rect.width));  // ✅ DPR = 1
-    const targetH = Math.max(1, Math.round(rect.height)); // ✅ DPR = 1
+    const isMobile = window.innerWidth < 900;
 
-    if (canvas.width !== targetW || canvas.height !== targetH){
-      canvas.width = targetW;
-      canvas.height = targetH;
-      W = canvas.width; H = canvas.height;
-      ctx.imageSmoothingEnabled = false;
+    if(isMobile){
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const targetW = Math.max(1, Math.round(rect.width * dpr));
+      const targetH = Math.max(1, Math.round(rect.height * dpr));
+
+      if (canvas.width !== targetW || canvas.height !== targetH){
+        canvas.width = targetW;
+        canvas.height = targetH;
+        W = canvas.width; H = canvas.height;
+        ctx.imageSmoothingEnabled = false;
+      }
+    }else{
+      if (canvas.width !== BASE_W || canvas.height !== BASE_H){
+        canvas.width = BASE_W;
+        canvas.height = BASE_H;
+        W = canvas.width; H = canvas.height;
+        ctx.imageSmoothingEnabled = false;
+      }
     }
+
     updateZoom();
+    updateCam(); // ✅ resize sonrası kamera yeniden ayarlansın
   }
 
   window.addEventListener("resize", () => { NEEDS_RESIZE = true; }, { passive:true });
@@ -1122,8 +1137,9 @@
     ui.score.textContent="0";
     buildWorld();
     player.x=160; player.y=GROUND_Y-player.h-2;
-    updateCam();
+
     NEEDS_RESIZE=true;
+    fitCanvas();     // ✅ ilk açılışta doğru ölçü+zoom+kamera
     requestAnimationFrame(frame);
   }
 
