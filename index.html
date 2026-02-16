@@ -273,7 +273,7 @@
 <script>
 (() => {
   // camera + scale
-  let ZOOM = 1.55;
+  let ZOOM = 1.0;           // ✅ desktop default
   const SPRITE_SCALE = 3.0;
   const TILE = 32;
 
@@ -304,19 +304,21 @@
   ctx.imageSmoothingEnabled = false;
   let W = canvas.width, H = canvas.height;
 
-  // ✅ FIX: resize only when needed (no "self zoom" on mobile)
+  // ✅ FIX: resize only when needed (no "self zoom")
   let NEEDS_RESIZE = true;
 
+  // ✅ FIX: stable zoom (mobile closer, desktop normal)
   function updateZoom(){
     const isMobile = window.innerWidth < 900;
-    ZOOM = isMobile ? 2.05 : 1.55; // stable
+    ZOOM = isMobile ? 2.05 : 1.0;   // ✅ desktop zoom removed
   }
 
+  // ✅ FIX: 1:1 canvas resolution with CSS size (no DPR amplification)
   function fitCanvas(){
     const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const targetW = Math.max(1, Math.round(rect.width * dpr));
-    const targetH = Math.max(1, Math.round(rect.height * dpr));
+    const targetW = Math.max(1, Math.round(rect.width));  // ✅ DPR = 1
+    const targetH = Math.max(1, Math.round(rect.height)); // ✅ DPR = 1
+
     if (canvas.width !== targetW || canvas.height !== targetH){
       canvas.width = targetW;
       canvas.height = targetH;
@@ -537,7 +539,7 @@
     const E=(x,kind)=>enemies.push({
       kind,
       x,
-      y:(kind===2 ? (GROUND_Y-28) : (GROUND_Y-44)), // monster-2 lower
+      y:(kind===2 ? (GROUND_Y-28) : (GROUND_Y-44)),
       w:44, h:44,
       vx:(kind===1 ? 170 : 210),
       minX:x-140, maxX:x+140,
